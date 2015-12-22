@@ -1,4 +1,4 @@
-EACdeathGen = function(n=1, age = 60, sex = 1, yrdx = 2000, stage = "U") {
+EACdeathGen_stage = function(n=1, age = 60, sex = 1, yrdx = 2000, stage = "U") {
 
   # This routine uses outputs from CanSurv fits for EAC survival.
   # Stratified variables: age, sex, stage. Note, no significant differences in EAC-specific survival
