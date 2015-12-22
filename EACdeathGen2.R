@@ -1,4 +1,4 @@
-EACdeathGen = function(n=1, age = 60, sex = 1, yrdx = 2000, stage = "A") {
+EACdeathGen = function(n=1, age = 60, sex = 1, yrdx = 2000, stage = "U") {
 
   # This routine uses outputs from CanSurv fits for EAC survival.
   # Stratified variables: age, sex, stage. Note, no significant differences in EAC-specific survival
@@ -6,9 +6,9 @@ EACdeathGen = function(n=1, age = 60, sex = 1, yrdx = 2000, stage = "A") {
   # Range input is in months.
 
   # need stage info
-  if(length(intersect(toupper(stage),c("A","ALL","L","R","D")))==0) {warning("stage not assigned"); return}
+  if(length(intersect(toupper(stage),c("A","L","R","D","U")))==0) {warning("stage variable needs to be one of L,R,D,A,U"); return}
 
-  if(toupper(stage)=="A" | toupper(stage)=="ALL") {
+  if(toupper(stage)=="A" | toupper(stage)=="U") {
   # Cure ALL (for 3 age groups: 50-59, 60-69, 70-84)
   b0 = -c(1.7763, 1.7748, 2.1619); b1 = c(0.0086, 0.0100, 0.0089)
   sd.b0 = c(0.0782, 0.0687, 0.0822); sd.b1 = c(0.0042, 0.0039, 0.0045)
