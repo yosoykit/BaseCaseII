@@ -22,6 +22,7 @@ temp = c(3,60)
 #}
 #else {
 
+
 #}
 print(temp[2])
 print(temp[1])
@@ -270,7 +271,7 @@ for (run in 1:totalpop){
 			# 2 years of RFA treatment
 			current_age=current_age+2
 			# decide if patient is success or failure: base values
-			RFA_success = sample(c(0,1,2),1,prob=c(.0741,.8889,.0370))
+			RFA_success = sample(c(0,1,2),1,prob=c(.15,.68,.17))
 			## Sensitivity analysis for effectiveness of RFA
 			#RFA_success = sample(c(0,1,2),1,prob=c(.04,.94,.02))
 			#RFA_success = sample(c(0,1,2),1,prob=c(.15,.78,.07))
@@ -304,7 +305,7 @@ for (run in 1:totalpop){
 			# 2 years of RFA treatment
 			current_age=current_age+2
 			# decide if patient is success or failure: base case values
-			RFA_success = sample(c(0,1),1,prob=c(.0323,.9677))
+			RFA_success = sample(c(0,1),1,prob=c(.189,.811))
 			### Sensitivity analysis for effectiveness of RFA
 			#RFA_success = sample(c(0,1),1,prob=c(.02,.98))
 			#RFA_success = sample(c(0,1),1,prob=c(.06,.94))
@@ -397,7 +398,7 @@ for (run in 1:totalpop){
 					#BE_recur = sample(c(0,1),1,prob=c(.95,.5))
 					#BE_recur = sample(c(0,1),1,prob=c(.85,.15))
 					# decide if patient is success or failure:base case values
-					RFA_success = sample(c(0,1,2),1,prob=c(.0741,.8889,.0370))
+					RFA_success = sample(c(0,1,2),1,prob=c(.15,.68,.17))
 					## Sensitivity analysis for effectiveness of RFA
 					#RFA_success = sample(c(0,1,2),1,prob=c(.04,.94,.02))
 					#RFA_success = sample(c(0,1,2),1,prob=c(.15,.78,.07))
@@ -413,7 +414,7 @@ for (run in 1:totalpop){
 					#BE_recur = sample(c(0,1),1,prob=c(.895,.105))
 					#BE_recur = sample(c(0,1),1,prob=c(.685,.315))
 					# decide if patient is success or failure : base case values
-					RFA_success = sample(c(0,1),1,prob=c(.0323,.9677))
+					RFA_success = sample(c(0,1),1,prob=c(.189,.811))
 					### Sensitivity analysis for effectiveness of RFA
 					#RFA_success = sample(c(0,1),1,prob=c(.02,.98))
 					#RFA_success = sample(c(0,1),1,prob=c(.06,.94))
@@ -483,7 +484,7 @@ for (run in 1:totalpop){
 						if (RFA_success==3){
 							## originally ND patients who are found with HGD on subsequent screen receive RFA for the first time now
 							totals[23]=totals[23]+1
-							RFA_success = sample(c(0,1,2),1,prob=c(.0741,.8889,.0370))
+							RFA_success = sample(c(0,1,2),1,prob=c(.15,.68,.17))
 							## Sensitivity analysis for effectiveness of RFA
 							#RFA_success = sample(c(0,1,2),1,prob=c(.04,.94,.02))
 							#RFA_success = sample(c(0,1,2),1,prob=c(.15,.78,.07))
@@ -521,7 +522,7 @@ for (run in 1:totalpop){
 							# 	totals[13]=totals[13]+3
 							# 	totals[20]=totals[20]+3
 							# }
-							RFA_success = sample(c(0,1,2),1,prob=c(.0741,.8889,.0370))
+							RFA_success = sample(c(0,1,2),1,prob=c(.15,.68,.17))
 							## Sensitivity analysis for effectiveness of RFA
 							#RFA_success = sample(c(0,1,2),1,prob=c(.04,.94,.02))
 							#RFA_success = sample(c(0,1,2),1,prob=c(.15,.78,.07))
