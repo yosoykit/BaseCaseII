@@ -123,26 +123,26 @@ for (run in 1:totalpop){
 					EAdetect <- 1
 					EAC_age <- min(EAC_age,(out$p_malig_soj+Ptimes[i]))
 					cat('EAC age before screening', EAC_age, '\n')
-					surg = sample(c(0,1),1,prob=c(.2,.8))
-					resect=0
-					if (surg==1){
-						resect = sample(c(0,1),1,prob=c(.66,.33))
-					}
-					## draw time of death by EAC for this individual
-					if (resect==1){
-						esoph_mort = sample(c(0,1),1,prob=c(.95,.05))
-						if (esoph_mort==1){
-							EACdeath= Inf
-						}
-						else{
-							death_by_EAC = EACdeathGen_resect(age=EAC_age)
-							EACdeath = death_by_EAC$age/12+EAC_age
-						}
-					}
-					else{
+					# surg = sample(c(0,1),1,prob=c(.2,.8))
+					# resect=0
+					# if (surg==1){
+					# 	resect = sample(c(0,1),1,prob=c(.66,.33))
+					# }
+					# ## draw time of death by EAC for this individual
+					# if (resect==1){
+						# esoph_mort = sample(c(0,1),1,prob=c(.95,.05))
+						# if (esoph_mort==1){
+						# 	EACdeath= Inf
+						# }
+						# else{
+					# 		death_by_EAC = EACdeathGen_resect(age=EAC_age)
+					# 		EACdeath = death_by_EAC$age/12+EAC_age
+					# 	}
+					# }
+					# else{
 						death_by_EAC = EACdeathGen(age=EAC_age)
 						EACdeath = death_by_EAC$age/12+EAC_age
-					} 
+					#} 
 					if (EACdeath > screen_age){
 						EAC_death_check=0
 					}
@@ -273,8 +273,8 @@ for (run in 1:totalpop){
 			# decide if patient is success or failure: base values
 			RFA_success = sample(c(0,1,2),1,prob=c(.15,.68,.17))
 			## Sensitivity analysis for effectiveness of RFA
-			#RFA_success = sample(c(0,1,2),1,prob=c(.04,.94,.02))
-			#RFA_success = sample(c(0,1,2),1,prob=c(.15,.78,.07))
+			#RFA_success = sample(c(0,1,2),1,prob=c(.178,.644,.178))
+			#RFA_success = sample(c(0,1,2),1,prob=c(.074,.889,.037))
 			if (RFA_success==0){
 				# put to max value, non CE-IM and non CE-D never get touchups
 				touchup = 3
@@ -307,8 +307,8 @@ for (run in 1:totalpop){
 			# decide if patient is success or failure: base case values
 			RFA_success = sample(c(0,1),1,prob=c(.189,.811))
 			### Sensitivity analysis for effectiveness of RFA
-			#RFA_success = sample(c(0,1),1,prob=c(.02,.98))
-			#RFA_success = sample(c(0,1),1,prob=c(.06,.94))
+			#RFA_success = sample(c(0,1),1,prob=c(.315,.685))
+			#RFA_success = sample(c(0,1),1,prob=c(.016,.984))
 			if (RFA_success==0){
 				# put to max value, non CE-IM never get touchups
 				touchup = 3
@@ -396,12 +396,12 @@ for (run in 1:totalpop){
 					BE_recur = sample(c(0,1),1,prob=c(.9,.1))
 					## sensitivity analysis
 					#BE_recur = sample(c(0,1),1,prob=c(.95,.5))
-					#BE_recur = sample(c(0,1),1,prob=c(.85,.15))
+					#BE_recur = sample(c(0,1),1,prob=c(.80,.20))
 					# decide if patient is success or failure:base case values
 					RFA_success = sample(c(0,1,2),1,prob=c(.15,.68,.17))
 					## Sensitivity analysis for effectiveness of RFA
-					#RFA_success = sample(c(0,1,2),1,prob=c(.04,.94,.02))
-					#RFA_success = sample(c(0,1,2),1,prob=c(.15,.78,.07))
+					#RFA_success = sample(c(0,1,2),1,prob=c(.178,.644,.178))
+					#RFA_success = sample(c(0,1,2),1,prob=c(.074,.889,.037))
 					if (RFA_success==0){
 						# put to max value, non CE-IM and non CE-D never get touchups
 						touchup = 3
@@ -412,12 +412,12 @@ for (run in 1:totalpop){
 					BE_recur = sample(c(0,1),1,prob=c(.79,.21))
 					## sensitivity analysis
 					#BE_recur = sample(c(0,1),1,prob=c(.895,.105))
-					#BE_recur = sample(c(0,1),1,prob=c(.685,.315))
+					#BE_recur = sample(c(0,1),1,prob=c(.58,.42))
 					# decide if patient is success or failure : base case values
 					RFA_success = sample(c(0,1),1,prob=c(.189,.811))
 					### Sensitivity analysis for effectiveness of RFA
-					#RFA_success = sample(c(0,1),1,prob=c(.02,.98))
-					#RFA_success = sample(c(0,1),1,prob=c(.06,.94))
+					#RFA_success = sample(c(0,1),1,prob=c(.315,.685))
+					#RFA_success = sample(c(0,1),1,prob=c(.016,.984))
 					if (RFA_success==0){
 						# put to max value, non CE-IM never get touchups
 						touchup = 3
@@ -486,8 +486,8 @@ for (run in 1:totalpop){
 							totals[23]=totals[23]+1
 							RFA_success = sample(c(0,1,2),1,prob=c(.15,.68,.17))
 							## Sensitivity analysis for effectiveness of RFA
-							#RFA_success = sample(c(0,1,2),1,prob=c(.04,.94,.02))
-							#RFA_success = sample(c(0,1,2),1,prob=c(.15,.78,.07))
+							#RFA_success = sample(c(0,1,2),1,prob=c(.178,.644,.178))
+							#RFA_success = sample(c(0,1,2),1,prob=c(.074,.889,.037))
 							if (RFA_success==0){
 								# put to max value, non CE-IM and non CE-D never get touchups
 								touchup = 3
@@ -524,8 +524,8 @@ for (run in 1:totalpop){
 							# }
 							RFA_success = sample(c(0,1,2),1,prob=c(.15,.68,.17))
 							## Sensitivity analysis for effectiveness of RFA
-							#RFA_success = sample(c(0,1,2),1,prob=c(.04,.94,.02))
-							#RFA_success = sample(c(0,1,2),1,prob=c(.15,.78,.07))
+							#RFA_success = sample(c(0,1,2),1,prob=c(.178,.644,.178))
+							#RFA_success = sample(c(0,1,2),1,prob=c(.074,.889,.037))
 							if (RFA_success==0){
 								# put to max value, non CE-IM and non CE-D never get touchups
 								touchup = 3
@@ -598,28 +598,28 @@ for (run in 1:totalpop){
 				totals[12]=totals[12]+1
 			}
 			# decide if patient is surgical candidate
-			surg = sample(c(0,1),1,prob=c(.2,.8))
-			resect=0
-			if (surg==1){
-				resect = sample(c(0,1),1,prob=c(.66,.33))
-			}
-			## draw time of death by EAC for this individual
-			if (resect==1){
-				totals[15]=totals[15]+1
-				esoph_mort = sample(c(0,1),1,prob=c(.95,.05))
-				if (esoph_mort==1){
-					EACdeath= Inf
-					totals[6]=totals[6]+1
-				}
-				else{
-					death_by_EAC = EACdeathGen_resect(age=EAC_age)
-					EACdeath = death_by_EAC$age/12+EAC_age
-				}
-			}
-			else{
+			# surg = sample(c(0,1),1,prob=c(.2,.8))
+			# resect=0
+			# if (surg==1){
+			# 	resect = sample(c(0,1),1,prob=c(.66,.33))
+			# }
+			# ## draw time of death by EAC for this individual
+			# if (resect==1){
+			# 	totals[15]=totals[15]+1
+			# 	esoph_mort = sample(c(0,1),1,prob=c(.95,.05))
+			# 	if (esoph_mort==1){
+			# 		EACdeath= Inf
+			# 		totals[6]=totals[6]+1
+			# 	}
+			# 	else{
+			# 		death_by_EAC = EACdeathGen_resect(age=EAC_age)
+			# 		EACdeath = death_by_EAC$age/12+EAC_age
+			# 	}
+			# }
+			# else{
 				death_by_EAC = EACdeathGen(age=EAC_age)
 				EACdeath = death_by_EAC$age/12+EAC_age
-			}
+			#}
 			if (EACdeath < final_surv && EACdeath < death_by_OC){
 				totals[5]=totals[5]+1
 				if (grade_status[1]==1){
@@ -654,26 +654,26 @@ for (run in 1:totalpop){
 			totals[10]=totals[10]+1
 		}
 		# decide if patient is surgical candidate
-		surg = sample(c(0,1),1,prob=c(.2,.8))
-		resect=0
-		if (surg==1){
-			resect = sample(c(0,1),1,prob=c(.2,.8))
-		}
-		## draw time of death by EAC for this individual
-		if (resect==1){
-			totals[15]=totals[15]+1
-			esoph_mort = sample(c(0,1),1,prob=c(.95,.05))
-			if (esoph_mort==1){
-				EACdeath = Inf
-				totals[6]=totals[6]+1
-			}
-			else{
-				death_by_EAC = EACdeathGen_resect(age=current_age)
-				EACdeath = death_by_EAC$age/12+current_age
-			}
-			print('resect')
-		}
-			else{
+		# surg = sample(c(0,1),1,prob=c(.2,.8))
+		# resect=0
+		# if (surg==1){
+		# 	resect = sample(c(0,1),1,prob=c(.2,.8))
+		# }
+		# ## draw time of death by EAC for this individual
+		# if (resect==1){
+		# 	totals[15]=totals[15]+1
+		# 	esoph_mort = sample(c(0,1),1,prob=c(.95,.05))
+		# 	if (esoph_mort==1){
+		# 		EACdeath = Inf
+		# 		totals[6]=totals[6]+1
+		# 	}
+		# 	else{
+		# 		death_by_EAC = EACdeathGen_resect(age=current_age)
+		# 		EACdeath = death_by_EAC$age/12+current_age
+		# 	}
+		# 	print('resect')
+		# }
+		#	else{
 			total_M_cells= sum(Msizes[1,])
 			# if (total_M_cells < (2^31-1)){
 			# 	temp = malig_sojourn(params,tau=current_age)
@@ -694,7 +694,7 @@ for (run in 1:totalpop){
 				EACdeath = death_by_EAC$age/12+EAC_hypoth_time
 			}
 			else{ EACdeath=Inf}
-		}
+		#}
 		if (EACdeath < final_surv && EACdeath < death_by_OC){
 
 				totals[5]=totals[5]+1
