@@ -1,4 +1,4 @@
-temp = c(3,60)
+temp = c(1,60)
 ## BASE CASE 2: WHITE MALES, 1950 cohort
 # surv_input<- function() {
 #   ANSWER <- readline("Which surveillance strategy to run? ")
@@ -40,7 +40,7 @@ source('EACdeathGen.R')
 params = amparams	
 
 #source('OCdeathGenUS2K.R')
-totalpop <- 100000
+totalpop <- 10000
 ## (initial Maligs, initial EAC, screen detected EAC, clinical EAC, deaths by EAC, deaths from surgery, initial ND (totalpop-initial HGD),initial HGD, screen EAC from ND, screen EAC from HGD, clin EAC from ND, clin EAC from HGD, # of endoscopies, death of other causes, # of EAC surgeries)
 totals <- rep(0,28)
 #names(totals)=c('initial maligs', 'initial EAC','total EAC screened','total clinical EAC', 'EAC deaths', 'surgery deaths', 'initial ND', 'initial HGD','EAC screened: ND','EAC screened: HGD', 'clinical EAC:ND', 'clinical EAC:HGD', 'num. endoscopies','OC deaths', 'num EAC surgeries', 'EAC death:ND', 'EAC death:HGD', 'OC death:ND', 'OC death:HGD', 'no. endoscopies:ND', 'no.endscopies:HGD')

@@ -107,13 +107,14 @@ surv_period <- function(currentage, time_interval, params, preinit, Pnumbers, Ps
 				time0 <- 0   #running time since start of tau leap algorithm
 				## create new variable x to track M clone size
 				x <- m_sizes_old[j]     
-				while (time0 < tfinal){
+				while (time0 < tfinal && EAdetect2==0){
 					lambda <- x*leaprates
 					N<- rep(0,3)
 					N <- rpois(3,lambda*tau)
 					if (N[2]>0){
 						EAdetect2 <- 1
 						EAC_age <- min(EAC_age,(time0+screen_age1))
+						print(EAdetect2)
 					}
 					if (!(is.na(N[3])) && !(is.na(N[1]))){
 						add<-0
@@ -128,7 +129,10 @@ surv_period <- function(currentage, time_interval, params, preinit, Pnumbers, Ps
 							time0 <- time0 + tau
 						}
 					}
-					else {time0=time0+tau}
+					else {
+						#time0=time0+tau
+						tau=tau/2
+					}
 					if (x==0){ break}
 				}
 				mclonesizes[(length(mclonesizes_1)+j)] <- x
@@ -153,7 +157,7 @@ surv_period <- function(currentage, time_interval, params, preinit, Pnumbers, Ps
 				time0 <- 0   #running time since start of tau leap algorithm
 				## create new variable x to track M clone size
 				x <- extramalig[j]     
-				while (time0 < tfinal){
+				while (time0 < tfinal && EAdetect2==0){
 					lambda <- x*leaprates
 					N<- rep(0,3)
 					N <- rpois(3,lambda*tau)
@@ -174,7 +178,9 @@ surv_period <- function(currentage, time_interval, params, preinit, Pnumbers, Ps
 							time0 <- time0 + tau
 						}
 					}
-					else {time0=time0+tau}
+					else {#time0=time0+tau
+						tau=tau/2
+					}
 					if (x==0){ break}
 				}
 				extramalig_new1[j] <- x
