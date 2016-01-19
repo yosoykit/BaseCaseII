@@ -31,11 +31,16 @@ gerd2<- 0.0070447
 gerd3<- 26.002   
 nu0 <-amnu0<- 0.36494E-03 
 
-ammu0<- ammu1 <-  0.79942E-03
+#ammu0<- ammu1 <-  0.79942E-03
+## ADJUSTED VALUES FOR BASE CASE 2 need a factor change for BE segment length distribution, mean length of beta(.5,4)
+crypts_per_avBE<- (1+15*(.5/4.5))*10*75/15*1000
+ammu0<- 0.79942E-03*250000/crypts_per_avBE
+ammu1 <-  0.79942E-03
 ammu2<-    0.45439E-04 
 
 kstem<- 4    				## stem cells/crypt
-X<- 250000*kstem 			## total stem cells in a 5 cm BE segment assuming 250,000 crypts/5cm
+#X<- 250000*kstem 			## total stem cells in a 5 cm BE segment assuming 250,000 crypts/5cm
+X <- crypts_per_avBE*kstem
 
 amrho<- 1.0000E-09       	## detection rate of clinical cancers
 amalphaP0<- 10				## premalignant cell division rate

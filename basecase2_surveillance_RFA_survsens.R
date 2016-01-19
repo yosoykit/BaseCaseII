@@ -1,5 +1,6 @@
-temp = c(1,60)
-sex="M"
+temp = c(4,60)
+#stop surveilling CE-IM patients after certain years of surveillance for sensitivity analysis
+sens_surv = 5
 ## BASE CASE 2: WHITE MALES, 1950 cohort
 # surv_input<- function() {
 #   ANSWER <- readline("Which surveillance strategy to run? ")
@@ -23,7 +24,6 @@ sex="M"
 #}
 #else {
 
-
 #}
 print(temp[2])
 print(temp[1])
@@ -40,9 +40,7 @@ source('BE_density.R')
 source('EACdeathGen.R')
 source('EACdeathGen2.R')
 source('EACdeathGen2_Wani.R')
-source("EACstageGen2.R")
 params = amparams	
-
 #source('OCdeathGenUS2K.R')
 totalpop <- 100000
 ## (initial Maligs, initial EAC, screen detected EAC, clinical EAC, deaths by EAC, deaths from surgery, initial ND (totalpop-initial HGD),initial HGD, screen EAC from ND, screen EAC from HGD, clin EAC from ND, clin EAC from HGD, # of endoscopies, death of other causes, # of EAC surgeries)
@@ -51,6 +49,7 @@ totals <- rep(0,28)
 names(totals)=c('initial maligs', 'initial EAC','total EAC screened','total clinical EAC', 'EAC deaths', 'surgery deaths', 'initial ND', 'initial HGD','EAC screened: ND','EAC screened: HGD', 'clinical EAC:ND', 'clinical EAC:HGD', 'num. endoscopies','OC deaths', 'num EAC surgeries', 'EAC death:ND', 'EAC death:HGD', 'OC death:ND', 'OC death:HGD', 'no. endoscopies:ND', 'no.endscopies:HGD','RFA touchups', 'RFA:ND', 'RFA:HGD', 'RFA touchups:ND', 'RFA touchups:HGD', 'Lifeyears:ND', 'Lifeyears:HGD')
 end_age = 80
 final_surv = 100
+
 for (run in 1:totalpop){
 	## time of first screen of BE population
 	survey_int = matrix(c(end_age-screen_age,end_age-screen_age,3,3,3, end_age-screen_age,1/4,1/4,1/4,1/4),nrow=2, byrow=T)
@@ -101,7 +100,6 @@ for (run in 1:totalpop){
 		## 1) Poisson events for progenitor, preinitiated cells N1
 		BE = BEdistmm*kstem*5000
 		X=BE
-		kstem_biop <- 50
 		lambda1 = params[1]*X*Tfinal
 		N1 <- rpois(1,lambda1)
 		preinit <- N1
@@ -121,33 +119,13 @@ for (run in 1:totalpop){
 				pclonesizes[i] <- out$finalsize
 				mclonesizes[i] <- out$maligclone
 				if (out$EAdetect==1){ 
-					##cat('EA detected in person', '\n')
+					#cat('EA detected in person', '\n')
 					## keep track of EA detections to condition
-					#cat('clinical EAC in person', run, '\n')
 					EAdetect <- 1
 					EAC_age <- min(EAC_age,(out$p_malig_soj+Ptimes[i]))
-					# cat('EAC age before screening', EAC_age, '\n')
-					# surg = sample(c(0,1),1,prob=c(.2,.8))
-					# resect=0
-					# if (surg==1){
-					# 	resect = sample(c(0,1),1,prob=c(.66,.33))
-					# }
-					# ## draw time of death by EAC for this individual
-					# if (resect==1){
-					# 	esoph_mort = sample(c(0,1),1,prob=c(.95,.05))
-					# 	if (esoph_mort==1){
-					# 		EACdeath= Inf
-					# 	}
-					# 	else{
-					# 		death_by_EAC = EACdeathGen_resect(age=EAC_age)
-					# 		EACdeath = death_by_EAC$age/12+EAC_age
-					# 	}
-					# }
-					#  else{
-						EACstage <- EACstageGen(n=1,age=EAC_age,sex=sex,race="A",screen=F)
-						death_by_EAC = EACdeathGen_stage(n=1, age = EAC_age, sex = sex, yrdx = (birth_cohort+EAC_age), stage = EACstage)$time
-						EACdeath = death_by_EAC/12+EAC_age 
-					#} 
+					EACstage <- EACstageGen(n=1,age=EAC_age,sex=sex,race="A",screen=F)
+					death_by_EAC = EACdeathGen_stage(n=1, age = EAC_age, sex = sex, yrdx = (birth_cohort+EAC_age), stage = EACstage)$time
+					EACdeath = death_by_EAC/12+EAC_age 
 					if (EACdeath > screen_age){
 						EAC_death_check=0
 					}
@@ -210,6 +188,7 @@ for (run in 1:totalpop){
 		else {
 			Msizes = matrix(rep(0,3),nrow=3)
 		}
+		kstem_biop <- 50
 		pos.biops <- biop.sample_ind(Pnumbers, Psizes, Msizes2, BEdist,BEdistmm, extramalig,kstem_biop)
 		premaligbiops <- pos.biops$pbiop
 		maligbiops <- pos.biops$mbiop
@@ -249,7 +228,12 @@ for (run in 1:totalpop){
 	RFA_success=3
 	## check if its first surveillance after RFA to add up extra screens not explicitly modeled
 	postRFA_screens=0
-	## sensitivity of biopsy   5=40% HGD, 20% malig
+	## check if previous screen was CE-IM for surveillance interval sensitivity	
+	last_screen_CEIM = 0
+	## count time (years) of CE-IM
+	CEIM = 0
+
+	## sensitivity of biopsy   7=60% HGD coverage threshold, 20% malig
 	sens = 8
 	if (EAdetect==1){
 		grade_status[4]=2
@@ -274,11 +258,8 @@ for (run in 1:totalpop){
 			BEdist=RFA_outcome$BEdist
 			# 2 years of RFA treatment
 			current_age=current_age+2
-			# decide if patient is success or failure: base values
+			# decide if patient is success or failure
 			RFA_success = sample(c(0,1,2),1,prob=c(.15,.68,.17))
-			## Sensitivity analysis for effectiveness of RFA
-			#RFA_success = sample(c(0,1,2),1,prob=c(.178,.644,.178))
-			#RFA_success = sample(c(0,1,2),1,prob=c(.074,.889,.037))
 			if (RFA_success==0){
 				# put to max value, non CE-IM and non CE-D never get touchups
 				touchup = 3
@@ -286,9 +267,12 @@ for (run in 1:totalpop){
 			else{
 				# yearly screens for HGD ablated, CE-D
 				surv_int=1
+				if (RFA_success==1){
+					last_screen_CEIM =1
+				}
 			}
-			##cat('M clones post RFA', Msizes[3,], '\n')
-			##cat('P clones post RFA', Psizes,'\n')
+			#cat('M clones post RFA', Msizes[3,], '\n')
+			#cat('P clones post RFA', Psizes,'\n')
 		}
 		#Strategy 1 & 3
 		#surv_int = 1/4
@@ -308,17 +292,15 @@ for (run in 1:totalpop){
 			BEdist=RFA_outcome$BEdist
 			# 2 years of RFA treatment
 			current_age=current_age+2
-			# decide if patient is success or failure: base case values
+			# decide if patient is success or failure
 			RFA_success = sample(c(0,1),1,prob=c(.189,.811))
-			### Sensitivity analysis for effectiveness of RFA
-			#RFA_success = sample(c(0,1),1,prob=c(.315,.685))
-			#RFA_success = sample(c(0,1),1,prob=c(.016,.984))
 			if (RFA_success==0){
 				# put to max value, non CE-IM never get touchups
 				touchup = 3
 			}
 			else{
 				surv_int = 3
+				last_screen_CEIM =1
 			}
 		}
 	}
@@ -337,8 +319,8 @@ for (run in 1:totalpop){
 			extramalig <- next_screen$extramalignew
 			if (EAdetect==1){
 				EAC_age=next_screen$EAC_age
-				#cat('EAC age onset',next_screen$EAC_age, '\n')
 			}
+			time_lapsed <- next_screen$current_age-current_age
 			current_age <- next_screen$current_age
 
 		}
@@ -396,14 +378,8 @@ for (run in 1:totalpop){
 				#}
 				if (grade_status[2]==1){
 					BE_recur = sample(c(0,1),1,prob=c(.9,.1))
-					## sensitivity analysis
-					#BE_recur = sample(c(0,1),1,prob=c(.95,.5))
-					#BE_recur = sample(c(0,1),1,prob=c(.80,.20))
-					# decide if patient is success or failure:base case values
+					# decide if patient is success or failure
 					RFA_success = sample(c(0,1,2),1,prob=c(.15,.68,.17))
-					## Sensitivity analysis for effectiveness of RFA
-					#RFA_success = sample(c(0,1,2),1,prob=c(.178,.644,.178))
-					#RFA_success = sample(c(0,1,2),1,prob=c(.074,.889,.037))
 					if (RFA_success==0){
 						# put to max value, non CE-IM and non CE-D never get touchups
 						touchup = 3
@@ -412,14 +388,8 @@ for (run in 1:totalpop){
 				else if (grade_status[1]==1){
 					## BE RECUR from initially ND at year 3 = 21% for Strat 6
 					BE_recur = sample(c(0,1),1,prob=c(.79,.21))
-					## sensitivity analysis
-					#BE_recur = sample(c(0,1),1,prob=c(.895,.105))
-					#BE_recur = sample(c(0,1),1,prob=c(.58,.42))
-					# decide if patient is success or failure : base case values
+					# decide if patient is success or failure
 					RFA_success = sample(c(0,1),1,prob=c(.189,.811))
-					### Sensitivity analysis for effectiveness of RFA
-					#RFA_success = sample(c(0,1),1,prob=c(.315,.685))
-					#RFA_success = sample(c(0,1),1,prob=c(.016,.984))
 					if (RFA_success==0){
 						# put to max value, non CE-IM never get touchups
 						touchup = 3
@@ -433,6 +403,8 @@ for (run in 1:totalpop){
 					Msizes=RFA_outcome$Msizes
 					preinit = RFA_outcome$preinit
 					BEdist=RFA_outcome$BEdist
+					#cat('M clones post RFA', Msizes[3,], '\n')
+					#cat('P clones post RFA', Psizes,'\n')
 					touchup=touchup+1
 					totals[22]=totals[22]+1
 					if (grade_status[1]==1){
@@ -444,6 +416,7 @@ for (run in 1:totalpop){
 				}
 			}
 			else {
+				kstem_biop <- 50
 				pos.biops <- biop.sample_ind(Pnumbers, Psizes, Msizes2, BEdist,BEdistmm, extramalig,kstem_biop)
 				premaligbiops <- pos.biops$pbiop
 				maligbiops <- pos.biops$mbiop
@@ -453,6 +426,8 @@ for (run in 1:totalpop){
 					msizes_ind = which(Msizes2>0)
 					Msizes=matrix(c(Msizes2[msizes_ind],rep(1,length(msizes_ind)),Psizes[msizes_ind]),nrow=3,byrow=T)
 				}
+				#cat('M clones post biopsy', Msizes[3,], '\n')
+				#cat('P clones post biopsy', Psizes,'\n')
 				Pnumbers = pos.biops$Pnumbers
 				extramalig = pos.biops$extramalig
 				number.posbiops<-rep(0,10)
@@ -482,9 +457,6 @@ for (run in 1:totalpop){
 							## originally ND patients who are found with HGD on subsequent screen receive RFA for the first time now
 							totals[23]=totals[23]+1
 							RFA_success = sample(c(0,1,2),1,prob=c(.15,.68,.17))
-							## Sensitivity analysis for effectiveness of RFA
-							#RFA_success = sample(c(0,1,2),1,prob=c(.178,.644,.178))
-							#RFA_success = sample(c(0,1,2),1,prob=c(.074,.889,.037))
 							if (RFA_success==0){
 								# put to max value, non CE-IM and non CE-D never get touchups
 								touchup = 3
@@ -520,9 +492,6 @@ for (run in 1:totalpop){
 							# 	totals[20]=totals[20]+3
 							# }
 							RFA_success = sample(c(0,1,2),1,prob=c(.15,.68,.17))
-							## Sensitivity analysis for effectiveness of RFA
-							#RFA_success = sample(c(0,1,2),1,prob=c(.178,.644,.178))
-							#RFA_success = sample(c(0,1,2),1,prob=c(.074,.889,.037))
 							if (RFA_success==0){
 								# put to max value, non CE-IM and non CE-D never get touchups
 								touchup = 3
@@ -544,35 +513,54 @@ for (run in 1:totalpop){
 			}
 		}
 		grade_status[4]=EAdetect
+		if (RFA_success==1 && last_screen_CEIM==1){
+			CEIM = CEIM + time_lapsed
+		}
+		if (RFA_success==1){
+			last_screen_CEIM=1
+		}
+		else {
+			CEIM=0
+		}
+		if (CEIM >=sens_surv){
+			break
+		}
 	}
-	if (grade_status[4]==0 && grade_status[3]==0 && current_age >=end_age && BEdist>0){
-		if (!all(Psizes>0)){
-			plast = min(which(Psizes==0))
-			Psizes=Psizes[1:(plast-1)]
-			mtemp = Msizes[2,]
-			mlast = min(which(mtemp==0))
-			Msizes2 <- rep(0,length(Psizes))
-			if (mlast>1){
-				Msizes=matrix(Msizes[1:3,1:(mlast-1)],nrow=3)
-				mtemp2 <- Msizes[3,]
-				clonesize1 <- Psizes
-				for (j in 1:length(Msizes[1,])){
-					for (k in 1:length(clonesize1)){
-						if (Msizes[3,j]==clonesize1[k]){
-							kspot=k
-							Msizes2[kspot]=Msizes2[kspot]+Msizes[1,j]
-							break 			 	
+	if (grade_status[4]==0 && grade_status[3]==0 && BEdist>0){
+		if (current_age >=end_age || CEIM >=sens_surv ){
+			if (CEIM >=sens_surv){
+				#print(current_age)
+				#print(CEIM)
+				print("5 year cutoff!")
+			}
+			if (!all(Psizes>0)){
+				plast = min(which(Psizes==0))
+				Psizes=Psizes[1:(plast-1)]
+				mtemp = Msizes[2,]
+				mlast = min(which(mtemp==0))
+				Msizes2 <- rep(0,length(Psizes))
+				if (mlast>1){
+					Msizes=matrix(Msizes[1:3,1:(mlast-1)],nrow=3)
+					mtemp2 <- Msizes[3,]
+					clonesize1 <- Psizes
+					for (j in 1:length(Msizes[1,])){
+						for (k in 1:length(clonesize1)){
+							if (Msizes[3,j]==clonesize1[k]){
+								kspot=k
+								Msizes2[kspot]=Msizes2[kspot]+Msizes[1,j]
+								break 			 	
+							}
 						}
 					}
 				}
 			}
-		}
-		surv_int = final_surv - current_age
-		post80_outcome <- surv_period_post80(current_age, surv_int, params, preinit, Pnumbers, Psizes, Msizes,extramalig,BEdist, EAdetect)
-		EAdetect = post80_outcome$clinicalEA
-		grade_status[4]=EAdetect
-		if (EAdetect==1){
-			EAC_age = post80_outcome$EAC_age
+			surv_int = final_surv - current_age
+			post80_outcome <- surv_period_post80(current_age, surv_int, params, preinit, Pnumbers, Psizes, Msizes,extramalig,BEdist, EAdetect)
+			EAdetect = post80_outcome$clinicalEA
+			grade_status[4]=EAdetect
+			if (EAdetect==1){
+				EAC_age = post80_outcome$EAC_age
+			}
 		}
 	}
 	EACdeath=NULL
@@ -580,13 +568,12 @@ for (run in 1:totalpop){
 	if (grade_status[3]==2){
 		totals[1]=totals[1]+1
 	}
-	else if (grade_status[4]==2){
+	if (grade_status[4]==2){
 		totals[2]=totals[2]+1
 	}
-	else if (grade_status[4]==1){
+	if (grade_status[4]==1){
 		# rho detection event cisnet occur sometime interval after death by OC 
 		if (EAC_age < death_by_OC){
-			#cat('clinical EAC in person', run, '\n')
 			totals[4]=totals[4]+1
 			if (grade_status[1]==1){
 				totals[11]=totals[11]+1
@@ -595,29 +582,9 @@ for (run in 1:totalpop){
 				totals[12]=totals[12]+1
 			}
 			# decide if patient is surgical candidate
-			# surg = sample(c(0,1),1,prob=c(.2,.8))
-			# resect=0
-			# if (surg==1){
-			# 	resect = sample(c(0,1),1,prob=c(.66,.33))
-			# }
-			# ## draw time of death by EAC for this individual
-			# if (resect==1){
-			# 	totals[15]=totals[15]+1
-			# 	esoph_mort = sample(c(0,1),1,prob=c(.95,.05))
-			# 	if (esoph_mort==1){
-			# 		EACdeath= Inf
-			# 		totals[6]=totals[6]+1
-			# 	}
-			# 	else{
-			# 		death_by_EAC = EACdeathGen_resect(age=EAC_age)
-			# 		EACdeath = death_by_EAC$age/12+EAC_age
-			# 	}
-			# }
-			#else{
-				EACstage <- EACstageGen(n=1,age=EAC_age,sex=sex,race="A",screen=F)
-				death_by_EAC = EACdeathGen_stage(n=1, age = EAC_age, sex = sex, yrdx = (birth_cohort+EAC_age), stage = EACstage)$time
-				EACdeath = death_by_EAC/12+EAC_age 
-			#}
+			EACstage <- EACstageGen(n=1,age=EAC_age,sex=sex,race="A",screen=F)
+			death_by_EAC = EACdeathGen_stage(n=1, age = EAC_age, sex = sex, yrdx = (birth_cohort+EAC_age), stage = EACstage)$time
+			EACdeath = death_by_EAC/12+EAC_age 
 			if (EACdeath < final_surv && EACdeath < death_by_OC){
 				totals[5]=totals[5]+1
 				if (grade_status[1]==1){
@@ -626,10 +593,6 @@ for (run in 1:totalpop){
 				else if(grade_status[2]==1){
 					totals[17]=totals[17]+1
 				}
-				#cat('current age',current_age, '\n')
-				#cat('EAC age',EAC_age, '\n')
-				#cat('EAC death',death_by_EAC/12+EAC_age, '\n')
-				#cat('Other cause death',death_by_OC, '\n')
 			}
 		}
 		else if (EAC_age >= death_by_OC && death_by_OC<final_surv){
@@ -643,7 +606,6 @@ for (run in 1:totalpop){
 		}	
 	}
 	else if (grade_status[3]==1){
-		#cat('EAC screen-detected in person', run, '\n')
 		totals[3]=totals[3]+1
 		if (grade_status[1]==1){
 			totals[9]=totals[9]+1
@@ -651,63 +613,22 @@ for (run in 1:totalpop){
 		else if (grade_status[2]==1){
 			totals[10]=totals[10]+1
 		}
-		# decide if patient is surgical candidate
-		# surg = sample(c(0,1),1,prob=c(.2,.8))
-		# resect=0
-		# if (surg==1){
-		# 	resect = sample(c(0,1),1,prob=c(.2,.8))
-		# }
-		# ## draw time of death by EAC for this individual
-		# if (resect==1){
-		# 	totals[15]=totals[15]+1
-		# 	esoph_mort = sample(c(0,1),1,prob=c(.95,.05))
-		# 	if (esoph_mort==1){
-		# 		EACdeath = Inf
-		# 		totals[6]=totals[6]+1
-		# 	}
-		# 	else{
-		# 		death_by_EAC = EACdeathGen_resect(age=current_age)
-		# 		EACdeath = death_by_EAC$age/12+current_age
-		# 	}
-		# 	print('resect')
-		# }
-		# 	else{
-			# if (total_M_cells < (2^31-1)){
-			# 	temp = malig_sojourn(params,tau=current_age)
-			# 	M_to_EAC_time = temp$age_EAC
-			# 	for (m in 1:(total_M_cells-1)){
-			# 		temp = malig_sojourn(params,tau=current_age)
-			# 		M_to_EAC_time = min(M_to_EAC_time,temp$age_EAC)
-			# 	}
-			# 	EAC_hypoth_time = M_to_EAC_time
-			# }
-			# else {
-			# 	# for M clones in the billions, say there would have been detection within the month
-			# 	EAC_hypoth_time =current_age+1
-			# }
-			EACstage <- EACstageGen(n=1,age=current_age,sex=sex,race="A",screen=T)
-			if (EACstage=="L"){
-				death_by_EAC = EACdeathGen_Wani(n=1, age = current_age, sex = sex, yrdx = (birth_cohort+current_age), stage = EACstage, screen=T)$time
-				EACdeath = death_by_EAC/12+current_age
+		EACstage <- EACstageGen(n=1,age=current_age,sex=sex,race="A",screen=T)
+		if (EACstage=="L"){
+			death_by_EAC = EACdeathGen_Wani(n=1, age = current_age, sex = sex, yrdx = (birth_cohort+current_age), stage = EACstage, screen=T)$time
+			EACdeath = death_by_EAC/12+current_age
+		}
+		else{
+			total_M_cells= sum(Msizes[1,])
+			EAC_hypoth_time=malig_sojourn_m(params,tau=current_age,total_M_cells)$age_EAC
+			if (EAC_hypoth_time < Inf){
+				death_by_EAC = EACdeathGen_stage(n=1, age = EAC_hypoth_time, sex = sex, yrdx = (birth_cohort+current_age), stage = EACstage)$time
+				EACdeath = death_by_EAC/12+EAC_hypoth_time
 			}
-			else{
-				total_M_cells= sum(Msizes[1,])
-				EAC_hypoth_time=malig_sojourn_m(params,tau=current_age,total_M_cells)$age_EAC
-				if (EAC_hypoth_time < Inf){
-					death_by_EAC = EACdeathGen_stage(n=1, age = EAC_hypoth_time, sex = sex, yrdx = (birth_cohort+current_age), stage = EACstage)$time
-					EACdeath = death_by_EAC/12+EAC_hypoth_time
-				}
-				else{ EACdeath=Inf}
-			}
-		#}
-		#EACstage <- EACstageGen(n=1,age=EAC_age,sex=sex,race="A",screen=T)
-		#death_by_EAC = EACdeathGen_stage(n=1, age = current_age, sex = sex, yrdx = (birth_cohort+current_age), stage = EACstage)$time
-		#EACdeath = death_by_EAC/12+EAC_age 
+			else{ EACdeath=Inf}
+		}
 		if (EACdeath < final_surv && EACdeath < death_by_OC){
-				#cat("current age = ", current_age, "\n")
-				#cat("EAC stage = ", EACstage, "\n")
-				#cat("EAC death = ", EACdeath, "\n")
-				#cat("death_by_OC = ", death_by_OC, "\n")
+
 				totals[5]=totals[5]+1
 				if (grade_status[1]==1){
 					totals[16]=totals[16]+1
@@ -725,14 +646,10 @@ for (run in 1:totalpop){
 				totals[19]=totals[19]+1
 			}
 		}
-		#cat('current age',current_age, '\n')
-		#cat('EAC age',EAC_age, '\n')
-		#cat('EAC death',EACdeath, '\n')
-		#cat('Other cause death',death_by_OC, '\n')
 	}
 	else if (grade_status[2]==1){
-		##cat('only HGD ever detected in person', run, '\n')
-		if (final_surv > death_by_OC){
+		#cat('only HGD ever detected in person', run, '\n')
+		if (end_age > death_by_OC){
 			totals[14]=totals[14]+1
 			if (grade_status[1]==1){
 					totals[18]=totals[18]+1
@@ -743,7 +660,7 @@ for (run in 1:totalpop){
 		}
 	}
 	else if (grade_status[1]==1){
-		if (final_surv > death_by_OC){
+		if (end_age > death_by_OC){
 			totals[14]=totals[14]+1
 			if (grade_status[1]==1){
 					totals[18]=totals[18]+1
@@ -755,7 +672,8 @@ for (run in 1:totalpop){
 	}
 	if (grade_status[3]<2 && grade_status[4]<2){
 		life_years= min(EACdeath, final_surv, death_by_OC)-screen_age
-		##cat('Life years:', life_years, 'EAC death:', EACdeath, '\n')
+		#life_years= min(EACdeath, surv_end, death_by_OC)-screen_age
+		#cat('Life years:', life_years, 'EAC death:', EACdeath, '\n')
 		if (grade_status[1]==1){
 			totals[27]=totals[27]+life_years
 		}
@@ -780,21 +698,21 @@ totals[3:6]=totals[3:6]/nonEAC_pop*1000
 #totals[9:21]=totals[9:21]/nonEAC_pop*1000
 totals[9:28]=totals[9:28]/nonEAC_pop*1000
 
-if (strategy==1){
-	write(totals,file='am_basecase2_strat0_60.txt')
-}
-if (strategy==2){
-	write(totals,file='am_basecase2_strat1_60.txt')
-}
-if (strategy==3){
-	write(totals,file='am_basecase2_strat3_60.txt')
-}
-if (strategy==4){
-	write(totals,file='am_basecase2_strat4_60.txt')
-}
-if (strategy==5){
-	write(totals,file='am_basecase2_strat6_60.txt')
-}
+# if (strategy==1){
+# 	write(totals,file='am_basecase2_strat0_60_3sens5fu.txt')
+# }
+# if (strategy==2){
+# 	write(totals,file='am_basecase2_strat1_60_final.txt')
+# }
+# if (strategy==3){
+# 	write(totals,file='am_basecase2_strat3_60_3sensupp.txt')
+# }
+ if (strategy==4){
+ 	write(totals,file='am_basecase2_strat4_60_5fu.txt')
+ }
+ if (strategy==5){
+ 	write(totals,file='am_basecase2_strat6_60_5fu.txt')
+ }
 # nonEACpop0=totalpop-totals_0[1]
 # nonEACpop1=totalpop-totals_1[1]
 # nonEACpop3=totalpop-totals_3[1]
@@ -810,6 +728,6 @@ if (strategy==5){
 # sojourn(params, tau)
 # sapply(1:100, function(k) malig_sojourn(params,current_age))
 
-
 # options('warn'=1) - shows warnings when they happen, not at the end
 # options('warn'=2) - stops execution at warning
+

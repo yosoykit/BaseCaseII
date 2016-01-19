@@ -28,7 +28,7 @@
  	qM = params[10]
  	# conditional on non-extinction
  	#r<-runif(1,0,(1-betaM/alphaM))
- 	print((1-(betaM/alphaM)^mtotal))
+ 	#print((1-(betaM/alphaM)^mtotal))
  	r <- runif(1,0,1)
  	if( r >= (1-(betaM/alphaM)^mtotal)){
  		u =Inf

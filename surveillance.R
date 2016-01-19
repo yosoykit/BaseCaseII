@@ -114,7 +114,7 @@ surv_period <- function(currentage, time_interval, params, preinit, Pnumbers, Ps
 					if (N[2]>0){
 						EAdetect2 <- 1
 						EAC_age <- min(EAC_age,(time0+screen_age1))
-						print(EAdetect2)
+						#print(EAdetect2)
 					}
 					if (!(is.na(N[3])) && !(is.na(N[1]))){
 						add<-0
@@ -145,7 +145,7 @@ surv_period <- function(currentage, time_interval, params, preinit, Pnumbers, Ps
 
 		## Tau leap extra malignant clones with no surviving premalignant progenitor clone, if any
 		if (length(extramalig)>0 && EAdetect2==0){
-			print('extra malig!')
+			#print('extra malig!')
 			### TAU LEAP the small malignant clones in non HGD/EAC screened population (part of missed malig population)
 			epsilon <- .005
 			tau <- epsilon/(params[5]-params[3])
