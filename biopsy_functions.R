@@ -660,7 +660,7 @@ biop.sample <- function(numbers, Psizes, Msizes, totalpop, BEdist, BEdistmm, ext
 biop.sample_ind <- function(numbers, Psizes, Msizes, BEdist, BEdistmm, extramalig, kstem){
 	coverage<- c(.05,.1,.2,.3,.4,.5,.6,.7,.8,.9)
 	mcoverage <- c(.05,.1,.2,.3,.4,.5,.6,.7,.8,.9)
-	mcoverage=mcoverage/2
+	#mcoverage=mcoverage/2
 	numbers_new<- 0
 	Psizes_new <- rep(0,length(Psizes))
 	Msizes_new <- rep(0,length(Psizes))
@@ -850,6 +850,204 @@ biop.sample_ind <- function(numbers, Psizes, Msizes, BEdist, BEdistmm, extramali
 	extramalig=c(extramalig_new,extramalig)
 	return(list(pbiop=positive.biop,mbiop=mpositive.biop, missedmalig=missedm, Pnumbers=numbers_new,Psizes=Psizes_new, Msizes=Msizes_new, extramalig=extramalig))
 }
+
+## FOR AN INDIVIDUAL PERSON'S BIOPSY non Seattle protocol: using a fraction frac_sea of the number of Seattle protocol biopsies
+biop.sample_ind_nonSea <- function(numbers, Psizes, Msizes, BEdist, BEdistmm, extramalig, kstem){
+	coverage<- c(.05,.1,.2,.3,.4,.5,.6,.7,.8,.9)
+	mcoverage <- c(.05,.1,.2,.3,.4,.5,.6,.7,.8,.9)
+	#mcoverage=mcoverage/2
+	frac_sea = 2
+	numbers_new<- 0
+	Psizes_new <- rep(0,length(Psizes))
+	Msizes_new <- rep(0,length(Psizes))
+	extramalig_new <-NULL
+	positive.biop<- matrix(0,10,nrow=10,ncol=1)
+	mpositive.biop<- matrix(0,10,nrow=10,ncol=1)
+	missedm <- matrix(0,10,nrow=10,ncol=1)
+	one_crypt_r= sqrt(15/(1000*sqrt(12)))
+	
+	## CHECK BIOPSIES FOR P + M cells then decide if any of biopsy was M cells
+	sizes <- Psizes + Msizes
+	a <- -75/8
+	b <- 75/8
+	# c <- -50/6
+	# d <- 50/6
+	### for 5mm X 3mm biopsy	
+	bioparea <- 15
+   	if (max(Msizes[1:numbers])<(BEdistmm*kstem*5000) && BEdistmm>0){		
+		if (numbers[1]>0){
+			clonesize1 <- sizes[1:numbers[1]]
+			n <- ceiling(BEdist[1]/2)
+			kradii <- cloneradii(clonesize1,kstem)
+			quadrant <- rep(0,length(kradii))
+			### dimensions of quadrant for appropriate BE length for individual
+			dims=rep(0,2)
+			dims[1] <- -BEdistmm/(2*n)
+			dims[2]<- BEdistmm/(2*n)
+			area <- rep(0,length(kradii))
+			mclonesize1 <- Msizes[1:numbers[1]]
+			## usually size 0 for malignant compartment in each P clone
+			mkradii <- cloneradii(mclonesize1,kstem)
+			marea <- rep(0,length(mkradii))
+
+			for (j in 1:length(kradii)){
+			    quadrant[j] <- sample(1:(n*4),1,prob=rep(1/(n*4),n*4)) 
+			    ## x and y are coordinates of center for premalignant clones in BE segment
+				u1 <- runif(1)
+				x<- (b-a)*u1+a
+				u2 <- runif(1)
+				y <- (dims[2]-dims[1])*u2+dims[1]	
+				area[j]<- intersect.area(dims,x,y,kradii[j])	
+				if (mkradii[j]!=0){
+					## place center of malignant clone s.t. its entire area is contained in P+M clone
+					r_crit <- kradii[j]-mkradii[j]
+					# pick M center within square of sides r_criterion
+					aM <- x-r_crit
+					bM <- x+r_crit
+					cM<- y-r_crit
+					dM <- y+r_crit		 
+					u1m <- runif(1)
+					xm<- (bM-aM)*u1m+aM
+					u2m <- runif(1)
+					ym <- (dM-cM)*u2m+cM	
+					while (sqrt((xm-x)^2+(ym-y)^2)>(kradii[j]-mkradii[j])){		
+						u1m <- runif(1)
+						xm<- (bM-aM)*u1m+aM
+						u2m <- runif(1)
+						ym <- (dM-cM)*u2m+cM	
+					}
+					marea[j]<- intersect.area(dims,xm,ym,mkradii[j])
+				}
+			}
+			moverlap_cells <- round((kstem*marea)/((one_crypt_r)^2*sqrt(12)))
+			neo_overlap_cells <- round((kstem*area)/((one_crypt_r)^2*sqrt(12)))
+			#deplete neoplastic cells in biopsies from main counts
+			Msizes[1:numbers[1]]<- mclonesize1-moverlap_cells
+			Psizes[1:numbers[1]] <- clonesize1 - neo_overlap_cells - mclonesize1+moverlap_cells
+			psize_temp <- Psizes[1:numbers[1]]
+			p_nonextinct_ind<-0
+			p_extinct_ind<-0
+			if (sum(psize_temp)>0){
+				p_nonextinct_ind <- which(psize_temp>0)
+			}
+			else if (sum(psize_temp)==0){
+				p_extinct_ind<- which(psize_temp==0)
+			}
+			if (any(p_nonextinct_ind>0)){
+				numbers_new[1]<- length(psize_temp[psize_temp>0])
+				#print(Psizes_new)
+				Psizes_new[1:numbers_new[1]]<- psize_temp[psize_temp>0]
+				Msizes_new[1:numbers_new[1]] <- Msizes[p_nonextinct_ind] 
+			}
+			else if(all(p_nonextinct_ind==0)){
+				numbers_new[1]<- 0
+				Psizes_new <-0
+				Msizes_new<-0
+			}
+			if (any(p_extinct_ind>0)){
+				extramalig_new = Msizes[p_extinct_ind]
+			}	
+
+			total.area <- rep(0,(n*4))
+			mtotal.area <- rep(0,(n*4))
+			analyzed_biops = sample(1:(n*4),(n*4)/frac_sea,replace=F)
+			for (t in analyzed_biops){
+				for (l in 1:length(kradii)){
+					if (quadrant[l]==t){
+						total.area[t] <- total.area[t] + area[l]
+						mtotal.area[t] <- mtotal.area[t] + marea[l] 
+					}
+				}
+			}
+			for (s in 1:10){
+				for (m in 1:length(total.area)){
+					if (total.area[m] >= (coverage[s]*bioparea)){
+						hit=1
+						positive.biop[s,1] <- positive.biop[s,1] + hit
+					}
+					else { hit = 0}
+					## check if malignant clone is detected in biopsy
+					if (mtotal.area[m] >= (mcoverage[s]*bioparea) && hit==1){
+						mhit = 1				
+						mpositive.biop[s,1] <- mpositive.biop[s,1]+mhit
+					}
+				}	
+				if (sum(mtotal.area)>0){
+					if(positive.biop[s,1]>0 && mpositive.biop[s,1]==0){
+						missedm[s,1] <- missedm[s,1]+1
+					}
+				}
+			}
+		}
+	}
+	else if(max(Msizes[1:numbers])>=(BEdistmm*kstem*5000) && BEdistmm>0) {
+		positive.biop[,1]<- rep(1,length(coverage))
+		mpositive.biop[,1]<- rep(1,length(mcoverage))
+
+	}
+	if (length(extramalig)>0 && BEdistmm>0){
+		maligs <- extramalig
+		mkradiiextra <- cloneradii(maligs,kstem)
+		n <- ceiling(BEdist/2)
+		quadrant <- rep(0,length(mkradiiextra))
+		### dimensions of quadrant for appropriate BE length for individual
+		dims= rep(0,2)
+		dims[1] <- -BEdistmm/(2*n)
+		dims[2]<- BEdistmm/(2*n)
+		## area of individual clone intersect with biopsy
+		marea <- rep(0,length(mkradiiextra))
+		for (j in 1:length(mkradiiextra)){
+			quadrant[j] <- sample(1:(n*4),1,prob=rep(1/(n*4),n*4)) 
+			u1 <- runif(1)
+			x<- (b-a)*u1+a
+			u2 <- runif(1)
+			y <- (dims[2]-dims[1])*u2+dims[1]
+			marea[j]<- intersect.area(dims,x,y,mkradiiextra[j])			
+		}
+		moverlap_cells <- round((kstem*marea)/((one_crypt_r)^2*sqrt(12)))
+		#deplete neoplastic cells in biopsies from main counts
+		extramalig<- extramalig-moverlap_cells
+		for (check_malig in 1:length(maligs)){
+			if (extramalig[check_malig]<0){
+				extramalig[check_malig]=0
+			}
+		}
+		if (all(extramalig==0)){
+			extramalig=NULL
+		}
+		mtotal.area <- rep(0,(n*4))
+		analyzed_biops = sample(1:(n*4),(n*4)/frac_sea,replace=F)
+		for (t in analyzed_biops){
+			for (l in 1:length(mkradiiextra)){
+				if (quadrant[l]==t){
+					mtotal.area[t] <- mtotal.area[t] + marea[l]
+				}
+			}
+		}
+		for (s in 1:10){
+			for (m in 1:length(mtotal.area)){
+				## greater than HGD type coverage threshold 
+				if (mtotal.area[m] >= (coverage[s]*bioparea)){
+					#cat(mtotal.area[m], 'M biop cov', mcoverage[s]*bioparea, 'threshold \n')
+					mhit = 1
+					mpositive.biop[s,1] <- mpositive.biop[s,1]+mhit
+					## Also count as HGD
+					positive.biop[s,1] <- positive.biop[s,1]+mhit
+				}					
+			}
+			if (sum(mtotal.area)>0){
+				if(positive.biop[s,1]>0 && mpositive.biop[s,1]==0){
+					missedm[s,1] <- missedm[s,1]+1
+				}
+			}	
+		}	
+	}
+	Psizes_new=Psizes_new[1:sum(numbers_new)]
+	Msizes_new= Msizes_new[1:sum(numbers_new)]
+	extramalig=c(extramalig_new,extramalig)
+	return(list(pbiop=positive.biop,mbiop=mpositive.biop, missedmalig=missedm, Pnumbers=numbers_new,Psizes=Psizes_new, Msizes=Msizes_new, extramalig=extramalig))
+}
+
 
 source("HexGrid.R")
 source("neighborList.R")

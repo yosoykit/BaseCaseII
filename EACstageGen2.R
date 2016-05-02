@@ -20,11 +20,17 @@ EACstageGen = function(n=1,age=60,sex="A",race="A",screen=FALSE) {
     ## stage-shifting based on study by Cooper, G.S. et al., 2002.
     ## Association of prediagnosis endoscopy with stage and survival in adenocarcinoma of the esophagus
     ## and gastric cardia. Cancer, 95(1), pp.32–38.Cooper et al. 2002 (Fig.1B)
+    # if(screen==TRUE) {
+    #   prob.stage[1] = prob.stage[1]*75/35
+    #   prob.stage[2] = prob.stage[2]*13/32
+    #   prob.stage[3] = prob.stage[3]*12/33
+    #   prob.stage[4] = 1-sum(prob.stage[1:3])
+    # }
     if(screen==TRUE) {
-      prob.stage[1] = prob.stage[1]*75/35
-      prob.stage[2] = prob.stage[2]*13/32
-      prob.stage[3] = prob.stage[3]*12/33
-      prob.stage[4] = 1-sum(prob.stage[1:3])
+      prob.stage[1] = .9
+      prob.stage[2] =.09
+      prob.stage[3] =.01
+      prob.stage[4] = 0
     }
      return(sample(c("L","R","D","U"),size=n,prob=prob.stage,replace=T)) 
   }
