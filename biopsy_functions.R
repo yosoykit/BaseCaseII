@@ -659,7 +659,8 @@ biop.sample <- function(numbers, Psizes, Msizes, totalpop, BEdist, BEdistmm, ext
 ## FOR AN INDIVIDUAL PERSON'S BIOPSY.  Not the originial method for prevalences of a total pop		
 biop.sample_ind <- function(numbers, Psizes, Msizes, BEdist, BEdistmm, extramalig, kstem){
 	coverage<- c(.05,.1,.2,.3,.4,.5,.6,.7,.8,.9)
-	mcoverage <- c(.05,.1,.2,.3,.4,.5,.6,.7,.8,.9)
+	#mcoverage <- c(.05,.1,.2,.3,.4,.5,.6,.7,.8,.9)
+	mcoverage <- rep(.9,10)
 	#mcoverage=mcoverage/2
 	numbers_new<- 0
 	Psizes_new <- rep(0,length(Psizes))
